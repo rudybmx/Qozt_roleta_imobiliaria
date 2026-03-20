@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roleta · Atendimento</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap');
+
+:root {
+  --primary: #FB572A;
+  --secondary: #2AFB57;
+  --accent: #572AFB;
+  --primary-dim: rgba(251,87,42,0.08);
+  --primary-border: rgba(251,87,42,0.25);
+  --secondary-dim: rgba(42,251,87,0.1);
+  --secondary-border: rgba(42,251,87,0.3);
+  --accent-dim: rgba(87,42,251,0.08);
+  --accent-border: rgba(87,42,251,0.2);
+
+  --bg: #F5F4F0;
+  --surface: #FFFFFF;
+  --surface2: #F0EFE9;
+  --border: #E2E0D8;
+  --text: #1A1916;
+  --muted: #8A8880;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Grid background sutil */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(251,87,42,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251,87,42,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Blob decorativo */
+body::after {
+  content: '';
+  position: fixed;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(42,251,87,0.08) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  pointer-events: none;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 36px;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+  animation: fadeUp 0.4s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Accent line no topo do card */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 32px; right: 32px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 0 0 4px 4px;
+}
+
+/* LOGO AREA */
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.logo { height: 22px; width: auto; }
+
+.logo-divider {
+  width: 1px; height: 18px;
+  background: var(--border);
+}
+
+.logo-label {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--secondary);
+  box-shadow: 0 0 0 3px rgba(42,251,87,0.2);
+  animation: pulse 2s ease-in-out infinite;
+  margin-left: auto;
+}
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 3px rgba(42,251,87,.2)} 50%{box-shadow:0 0 0 6px rgba(42,251,87,.08)} }
+
+/* HEADINGS */
+h1 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 28px; font-weight: 800;
+  line-height: 1.1; margin-bottom: 6px;
+  letter-spacing: -.5px;
+}
+
+.subtitle {
+  font-size: 12px; color: var(--muted);
+  margin-bottom: 28px; line-height: 1.6;
+}
+
+/* INPUT */
+label {
+  display: block;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px;
+}
+
+input[type="password"], input[type="text"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 20px;
+  letter-spacing: 0.25em;
+  padding: 16px 18px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  text-align: center;
+}
+
+input[type="password"]:focus, input[type="text"]:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(251,87,42,0.1);
+}
+
+input::placeholder {
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  font-size: 14px;
+}
+
+.error-msg {
+  font-size: 12px;
+  color: var(--primary);
+  margin-top: 10px;
+  min-height: 18px;
+  text-align: center;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+}
+
+/* BUTTONS */
+.btn-confirm {
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  transition: all .2s;
+  margin-top: 20px;
+}
+.btn-confirm:hover { background: #e04820; box-shadow: 0 6px 20px rgba(251,87,42,.35); }
+.btn-confirm:active { transform: scale(.98); }
+
+.btn-enter {
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer;
+  background: var(--secondary);
+  color: #0a2e14;
+  transition: all .2s;
+  margin-bottom: 10px;
+}
+.btn-enter:hover { background: #1fe84a; box-shadow: 0 6px 20px rgba(42,251,87,.35); }
+.btn-enter:active { transform: scale(.98); }
+
+.btn-exit {
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1.5px solid var(--primary-border);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer;
+  background: var(--primary-dim);
+  color: #c2410c;
+  transition: all .2s;
+}
+.btn-exit:hover { background: rgba(251,87,42,.15); border-color: var(--primary); }
+.btn-exit:active { transform: scale(.98); }
+
+.btn-back {
+  background: none; border: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; cursor: pointer;
+  padding: 8px 0; margin-top: 4px;
+  width: 100%; text-align: center;
+  transition: color .2s;
+}
+.btn-back:hover { color: var(--text); }
+
+/* STATUS PANEL */
+.status-panel { display: none; animation: fadeUp 0.3s ease both; }
+
+.corretor-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 26px; font-weight: 800;
+  margin-bottom: 4px; letter-spacing: -.3px;
+}
+
+.corretor-team {
+  font-size: 11px; color: var(--muted);
+  letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 24px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 30px;
+  font-size: 13px; font-weight: 700;
+  margin-bottom: 28px; transition: all .3s;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  letter-spacing: .04em;
+}
+
+.status-badge.online {
+  background: var(--secondary-dim);
+  border: 1.5px solid var(--secondary-border);
+  color: #15803d;
+}
+.status-badge.offline {
+  background: var(--primary-dim);
+  border: 1.5px solid var(--primary-border);
+  color: #c2410c;
+}
+.badge-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor;
+}
+.status-badge.online .badge-dot { animation: pulse 2s ease-in-out infinite; }
+
+/* DIVIDER */
+.divider {
+  height: 1px; background: var(--border); margin: 20px 0;
+}
+
+/* FOOTER */
+.footer {
+  font-size: 10px; color: var(--muted);
+  text-align: center; letter-spacing: .1em;
+  margin-top: 8px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+/* LOADING */
+.loading {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  vertical-align: middle; margin-right: 6px;
+}
+.loading.dark {
+  border-color: rgba(10,46,20,.3);
+  border-top-color: #0a2e14;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+
+  <!-- TELA 1: Login -->
+  <div id="screen-login">
+    <div class="logo-area">
+      <img src="https://pub-db8ed4fb33634589a6ce5fb07e85cb46.r2.dev/logo/qozt/SVG/logo_horizontal_preta.svg" class="logo" alt="QOZT">
+      <div class="logo-divider"></div>
+      <span class="logo-label">Roleta</span>
+      <div class="live-dot"></div>
+    </div>
+
+    <h1>Entrar na<br>fila</h1>
+    <p class="subtitle">Digite sua senha para gerenciar<br>sua disponibilidade.</p>
+
+    <label for="senha-input">Senha de acesso</label>
+    <input
+      type="password"
+      id="senha-input"
+      placeholder="••••••"
+      maxlength="20"
+      autocomplete="off"
+      autocapitalize="off"
+    />
+    <div class="error-msg" id="login-error"></div>
+    <button class="btn-confirm" id="btn-entrar" onclick="fazerLogin()">Confirmar</button>
+
+    <div class="footer" style="margin-top:24px;">Century 21 · Londrina</div>
+  </div>
+
+  <!-- TELA 2: Status -->
+  <div id="screen-status" class="status-panel">
+    <div class="logo-area">
+      <img src="https://pub-db8ed4fb33634589a6ce5fb07e85cb46.r2.dev/logo/qozt/SVG/logo_horizontal_preta.svg" class="logo" alt="QOZT">
+      <div class="logo-divider"></div>
+      <span class="logo-label">Roleta</span>
+      <div class="live-dot"></div>
+    </div>
+
+    <div class="corretor-name" id="corretor-nome"></div>
+    <div class="corretor-team" id="corretor-equipe"></div>
+
+    <div class="status-badge" id="status-badge">
+      <span class="badge-dot"></span>
+      <span id="status-texto"></span>
+    </div>
+
+    <button class="btn-enter" id="btn-entrar-roleta" onclick="alterarStatus('AVAILABLE')">
+      ▶ Entrar na roleta
+    </button>
+    <button class="btn-exit" id="btn-sair-roleta" onclick="alterarStatus('UNAVAILABLE')">
+      ✕ Sair da roleta
+    </button>
+
+    <div class="divider"></div>
+    <button class="btn-back" onclick="voltarLogin()">← trocar conta</button>
+    <div class="footer">Century 21 · Londrina</div>
+  </div>
+
+</div>
+
+<script>
+const N8N_LOGIN_URL  = 'https://webhooks.qozt.com.br/webhook/roleta-login';
+const N8N_STATUS_URL = 'https://webhooks.qozt.com.br/webhook/roleta-status';
+
+let corretorAtual = null;
+
+document.getElementById('senha-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') fazerLogin();
+});
+
+async function fazerLogin() {
+  const senha = document.getElementById('senha-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('btn-entrar');
+
+  if (!senha) { errEl.textContent = 'Digite sua senha.'; return; }
+
+  errEl.textContent = '';
+  btn.innerHTML = '<span class="loading"></span> Verificando...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(N8N_LOGIN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senha })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.encontrado) {
+      errEl.textContent = 'Senha inválida. Tente novamente.';
+      document.getElementById('senha-input').value = '';
+      return;
+    }
+
+    corretorAtual = data;
+    mostrarStatus();
+  } catch(e) {
+    errEl.textContent = 'Erro de conexão. Tente novamente.';
+  } finally {
+    btn.innerHTML = 'Confirmar';
+    btn.disabled = false;
+  }
+}
+
+function mostrarStatus() {
+  document.getElementById('screen-login').style.display = 'none';
+  const sp = document.getElementById('screen-status');
+  sp.style.display = 'block';
+  document.getElementById('corretor-nome').textContent = corretorAtual.nome;
+  document.getElementById('corretor-equipe').textContent =
+    corretorAtual.department_nome || 'Equipe ' + corretorAtual.department_id?.substring(0,8);
+  atualizarBadge(corretorAtual.availability);
+}
+
+function atualizarBadge(availability) {
+  const badge  = document.getElementById('status-badge');
+  const texto  = document.getElementById('status-texto');
+  const btnEnt = document.getElementById('btn-entrar-roleta');
+  const btnSai = document.getElementById('btn-sair-roleta');
+  const online = availability === 'AVAILABLE';
+
+  badge.className = 'status-badge ' + (online ? 'online' : 'offline');
+  texto.textContent = online ? 'Na roleta — disponível' : 'Fora da roleta';
+  btnEnt.style.display = online ? 'none' : 'block';
+  btnSai.style.display = online ? 'block' : 'none';
+}
+
+async function alterarStatus(novoStatus) {
+  const btnEnt = document.getElementById('btn-entrar-roleta');
+  const btnSai = document.getElementById('btn-sair-roleta');
+  const btnAtivo = novoStatus === 'AVAILABLE' ? btnEnt : btnSai;
+
+  const loadingClass = novoStatus === 'AVAILABLE' ? 'loading dark' : 'loading';
+  btnAtivo.innerHTML = `<span class="${loadingClass}"></span> Atualizando...`;
+  btnEnt.disabled = true;
+  btnSai.disabled = true;
+
+  try {
+    const res = await fetch(N8N_STATUS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent_id: corretorAtual.agent_id, availability: novoStatus })
+    });
+
+    if (res.ok) {
+      corretorAtual.availability = novoStatus;
+      atualizarBadge(novoStatus);
+    } else {
+      alert('Erro ao atualizar. Tente novamente.');
+    }
+  } catch(e) {
+    alert('Erro de conexão. Tente novamente.');
+  } finally {
+    btnEnt.disabled = false;
+    btnSai.disabled = false;
+    btnEnt.innerHTML = '▶ Entrar na roleta';
+    btnSai.innerHTML = '✕ Sair da roleta';
+  }
+}
+
+function voltarLogin() {
+  corretorAtual = null;
+  document.getElementById('senha-input').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('screen-status').style.display = 'none';
+  document.getElementById('screen-login').style.display = 'block';
+}
+</script>
+</body>
+</html>

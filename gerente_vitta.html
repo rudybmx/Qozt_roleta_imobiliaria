@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Gerente · Roleta</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;700;800&display=swap');
+
+    :root {
+      --primary: #FB572A;
+      --secondary: #2AFB57;
+      --accent: #572AFB;
+      --primary-dim: rgba(251, 87, 42, 0.1);
+      --secondary-dim: rgba(42, 251, 87, 0.1);
+      --accent-dim: rgba(87, 42, 251, 0.1);
+      --primary-border: rgba(251, 87, 42, 0.25);
+      --secondary-border: rgba(42, 251, 87, 0.3);
+      --accent-border: rgba(87, 42, 251, 0.2);
+
+      --bg: #F5F4F0;
+      --surface: #FFFFFF;
+      --surface2: #F0EFE9;
+      --border: #E2E0D8;
+      --text: #1A1916;
+      --muted: #8A8880;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(251, 87, 42, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(251, 87, 42, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      height: 28px;
+      width: auto;
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .topbar-label {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--secondary);
+      box-shadow: 0 0 0 3px rgba(42, 251, 87, 0.2);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 3px rgba(42, 251, 87, .2)
+      }
+
+      50% {
+        box-shadow: 0 0 0 6px rgba(42, 251, 87, .1)
+      }
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .last-update {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .btn-refresh {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .btn-refresh:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 32px;
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+    }
+
+    .tab {
+      padding: 14px 22px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      color: var(--muted);
+      transition: all .2s;
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text);
+    }
+
+    /* CONTENT */
+    .content {
+      padding: 28px 32px;
+      max-width: 1300px;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* STATS */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .stat-card:nth-child(1)::before {
+      background: var(--secondary);
+    }
+
+    .stat-card:nth-child(2)::before {
+      background: var(--accent);
+    }
+
+    .stat-card:nth-child(3)::before {
+      background: var(--secondary);
+    }
+
+    .stat-card:nth-child(4)::before {
+      background: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-value.green {
+      color: #16a34a;
+    }
+
+    .stat-value.red {
+      color: var(--primary);
+    }
+
+    .stat-value.blue {
+      color: var(--accent);
+    }
+
+    /* SECTION */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* TABLE */
+    .table-wrap {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: auto;
+      margin-bottom: 24px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      padding: 12px 16px;
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      border-bottom: 1.5px solid var(--border);
+      background: var(--surface2);
+      white-space: nowrap;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 700;
+    }
+
+    td {
+      padding: 13px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--surface2);
+    }
+
+    /* BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Bricolage Grotesque', sans-serif;
+    }
+
+    .badge.online {
+      background: var(--secondary-dim);
+      color: #15803d;
+      border: 1px solid var(--secondary-border);
+    }
+
+    .badge.offline {
+      background: var(--primary-dim);
+      color: #c2410c;
+      border: 1px solid var(--primary-border);
+    }
+
+    .badge.respondido {
+      background: var(--secondary-dim);
+      color: #15803d;
+      border: 1px solid var(--secondary-border);
+    }
+
+    .badge.aguardando {
+      background: rgba(251, 191, 36, .12);
+      color: #b45309;
+      border: 1px solid rgba(251, 191, 36, .3);
+    }
+
+    .badge.perdido {
+      background: var(--primary-dim);
+      color: #c2410c;
+      border: 1px solid var(--primary-border);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .badge.online .badge-dot {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* BUTTONS */
+    .btn-sm {
+      padding: 5px 13px;
+      border-radius: 8px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1.5px solid;
+      letter-spacing: .04em;
+    }
+
+    .btn-toggle-on {
+      background: var(--primary-dim);
+      color: #c2410c;
+      border-color: var(--primary-border);
+    }
+
+    .btn-toggle-on:hover {
+      background: rgba(251, 87, 42, .2);
+    }
+
+    .btn-toggle-off {
+      background: var(--secondary-dim);
+      color: #15803d;
+      border-color: var(--secondary-border);
+    }
+
+    .btn-toggle-off:hover {
+      background: rgba(42, 251, 87, .2);
+    }
+
+    .btn-edit {
+      background: var(--accent-dim);
+      color: #4338ca;
+      border-color: var(--accent-border);
+      margin-left: 6px;
+    }
+
+    .btn-edit:hover {
+      background: rgba(87, 42, 251, .15);
+    }
+
+    .btn-danger {
+      background: var(--primary-dim);
+      color: #c2410c;
+      border-color: var(--primary-border);
+      margin-left: 6px;
+    }
+
+    .btn-danger:hover {
+      background: rgba(251, 87, 42, .2);
+    }
+
+    /* FORM */
+    .form-section {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .form-section-title {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      color: var(--muted);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 700;
+    }
+
+    .form-group input,
+    .form-group select {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .form-group select option {
+      background: var(--surface);
+    }
+
+    .form-full {
+      grid-column: 1/-1;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 11px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: .04em;
+    }
+
+    .btn-primary:hover {
+      background: #e04820;
+      box-shadow: 0 4px 16px rgba(251, 87, 42, .3);
+    }
+
+    .btn-primary:active {
+      transform: scale(.98);
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 2fr;
+      gap: 16px;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .3);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      width: 420px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .15);
+    }
+
+    .modal h2 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-cancel {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .btn-cancel:hover {
+      border-color: var(--text);
+      color: var(--text);
+    }
+
+    /* FILTER */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .filter-bar input:focus,
+    .filter-bar select:focus {
+      border-color: var(--primary);
+    }
+
+    .link-helena {
+      color: var(--accent);
+      font-size: 11px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .link-helena:hover {
+      text-decoration: underline;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 13px;
+      z-index: 300;
+      display: none;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 600;
+      animation: slideUp .3s ease;
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    .toast.success {
+      border-color: var(--secondary-border);
+      color: #15803d;
+      background: #f0fdf4;
+    }
+
+    .toast.error {
+      border-color: var(--primary-border);
+      color: #c2410c;
+      background: #fff7f5;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* Tag pill */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .tag-orange {
+      background: var(--primary-dim);
+      color: #c2410c;
+    }
+
+    .tag-purple {
+      background: var(--accent-dim);
+      color: #4338ca;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="https://pub-db8ed4fb33634589a6ce5fb07e85cb46.r2.dev/logo/qozt/SVG/logo_horizontal_preta.svg"
+        class="logo" alt="QOZT">
+      <div class="topbar-divider"></div>
+      <span class="topbar-label">Roleta · Gerente</span>
+      <div class="live-dot"></div>
+    </div>
+    <div class="topbar-right">
+      <span class="last-update" id="last-update">—</span>
+      <button class="btn-refresh" onclick="carregarTudo()">↻ Atualizar</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="mudarTab('dashboard',this)">Dashboard</div>
+    <div class="tab" onclick="mudarTab('clientes',this)">Clientes</div>
+    <div class="tab" onclick="mudarTab('corretores',this)">Corretores</div>
+    <div class="tab" onclick="mudarTab('equipes',this)">Equipes</div>
+    <div class="tab" onclick="mudarTab('config',this)">Configurações</div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="tab-pane active" id="tab-dashboard">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Online agora</div>
+          <div class="stat-value green" id="stat-online">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total leads</div>
+          <div class="stat-value blue" id="stat-leads">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Respondidos</div>
+          <div class="stat-value green" id="stat-respondidos">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Perdidos</div>
+          <div class="stat-value red" id="stat-perdidos">—</div>
+        </div>
+      </div>
+      <div class="section-header"><span class="section-title">Corretores</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Corretor</th>
+              <th>Equipe</th>
+              <th>Status</th>
+              <th>Tempo online</th>
+              <th>Recebidos</th>
+              <th>Respondidos</th>
+              <th>Perdidos</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-dashboard"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="tab-pane" id="tab-clientes">
+      <div class="filter-bar">
+        <input type="text" id="filtro-cliente" placeholder="Buscar por nome ou telefone..." oninput="filtrarClientes()">
+        <select id="filtro-status" onchange="filtrarClientes()">
+          <option value="">Todos os status</option>
+          <option value="AGUARDANDO">Aguardando</option>
+          <option value="RESPONDIDO">Respondido</option>
+          <option value="PERDIDO">Perdido</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Entrada</th>
+              <th>Dept. Entrada</th>
+              <th>Tentativas</th>
+              <th>Corretor</th>
+              <th>Corretor pegou</th>
+              <th>Aguardou</th>
+              <th>Status</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-clientes"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CORRETORES -->
+    <div class="tab-pane" id="tab-corretores">
+      <div class="form-section">
+        <div class="form-section-title" id="form-corretor-titulo">Novo corretor</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Nome</label><input type="text" id="corretor-nome"
+              placeholder="Ex: Rudy Cordeiro"></div>
+          <div class="form-group"><label>Senha de acesso</label><input type="text" id="corretor-senha"
+              placeholder="Ex: RUDY2025"></div>
+          <div class="form-group"><label>Agent ID (Helena)</label><input type="text" id="corretor-agent-id"
+              placeholder="uuid do agente"></div>
+          <div class="form-group">
+            <label>Equipe</label>
+            <select id="corretor-equipe">
+              <option value="dac98425-e7bd-46a2-b26e-5a1be33b9f79|Equipe 01|1">Equipe 01</option>
+              <option value="082d342d-6259-4e6b-9f4d-d39010dbf4ee|Equipe 02|2">Equipe 02</option>
+              <option value="c6f59d5f-4576-4ff8-9418-4f3d35f2ba52|Equipe 03|3">Equipe 03</option>
+              <option value="1f645418-7402-4c1d-ac1d-3bfa5bdec693|Equipe 04|4">Equipe 04</option>
+              <option value="41f4ee46-9bf6-4542-919d-8f0c86a18b5e|Equipe 05|5">Equipe 05</option>
+              <option value="be0b5642-0383-48dd-98e5-15766f221e77|Equipe 06|6">Equipe 06</option>
+              <option value="6b0474e0-395f-4083-993e-1802bc7f4eb1|Equipe 07|7">Equipe 07</option>
+              <option value="2c051940-c025-4e95-bfae-43a82862393a|Equipe 08|8">Equipe 08</option>
+              <option value="3970d9b2-76de-4f5e-aa48-81e69c0b7b02|Equipe 09|9">Equipe 09</option>
+              <option value="c5c06519-23fe-4c9a-a273-459028ec7bea|Equipe 10|10">Equipe 10</option>
+            </select>
+          </div>
+          <div class="form-full" style="display:flex;gap:10px;margin-top:8px;">
+            <button class="btn-primary" onclick="salvarCorretor()">Salvar corretor</button>
+            <button class="btn-cancel" onclick="limparFormCorretor()">Limpar</button>
+          </div>
+        </div>
+      </div>
+      <div class="section-header"><span class="section-title">Corretores cadastrados</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Senha</th>
+              <th>Equipe</th>
+              <th>Status</th>
+              <th>Recebidos</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-corretores"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EQUIPES -->
+    <div class="tab-pane" id="tab-equipes">
+      <div class="form-section">
+        <div class="form-section-title">Nova equipe no Helena</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Nome da equipe</label><input type="text" id="equipe-nome"
+              placeholder="Ex: Equipe 11"></div>
+          <div class="form-full" style="margin-top:8px;">
+            <button class="btn-primary" onclick="criarEquipe()">Criar equipe</button>
+          </div>
+        </div>
+      </div>
+      <div class="section-header">
+        <span class="section-title">Equipes no Helena</span>
+        <button class="btn-refresh" onclick="carregarEquipes()">↻ Carregar equipes</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>ID</th>
+              <th>Padrão</th>
+              <th>Agentes</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-equipes"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="tab-pane" id="tab-config">
+      <div class="form-section">
+        <div class="form-section-title">Parâmetros da roleta</div>
+        <div class="config-grid">
+          <div class="form-group"><label>Timeout de resposta (min)</label><input type="number" id="cfg-timeout"
+              placeholder="10" min="1" max="60"></div>
+          <div class="form-group"><label>Máximo de tentativas</label><input type="number" id="cfg-tentativas"
+              placeholder="3" min="1" max="10"></div>
+          <div class="form-group"><label>Webhook de escalonamento</label><input type="text" id="cfg-webhook"
+              placeholder="https://webhooks.qozt.com.br/webhook/..."></div>
+          <div class="form-full" style="margin-top:8px;">
+            <button class="btn-primary" onclick="salvarConfig()">Salvar configurações</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL TROCAR SENHA -->
+  <div class="modal-overlay" id="modal-senha">
+    <div class="modal">
+      <h2>Trocar senha</h2>
+      <input type="hidden" id="modal-agent-id">
+      <div class="form-group"><label>Nova senha</label><input type="text" id="modal-nova-senha"
+          placeholder="Ex: CORRETOR2025"></div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="confirmarSenha()">Confirmar</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-senha')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EXCLUIR EQUIPE -->
+  <div class="modal-overlay" id="modal-excluir-equipe">
+    <div class="modal">
+      <h2>Excluir equipe</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Tem certeza? Essa ação remove a equipe do Helena
+        permanentemente.</p>
+      <input type="hidden" id="modal-equipe-id">
+      <div class="modal-footer">
+        <button class="btn-primary" style="background:var(--primary);"
+          onclick="confirmarExcluirEquipe()">Excluir</button>
+        <button class="btn-cancel" onclick="fecharModal('modal-excluir-equipe')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API = 'https://webhooks.qozt.com.br/webhook/gerente-vitta-api';
+    let dadosGlobais = { corretores: [], config: {} };
+    let clientesGlobais = [];
+
+    async function chamarApi(body) {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      return res.json();
+    }
+
+    function toast(msg, tipo = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show ' + tipo;
+      setTimeout(() => el.className = 'toast', 2800);
+    }
+
+    function mudarTab(id, el) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('tab-' + id).classList.add('active');
+      if (id === 'clientes') carregarClientes();
+      if (id === 'equipes') carregarEquipes();
+    }
+
+    function fmtData(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function carregarTudo() {
+      try {
+        const data = await chamarApi({ acao: 'dashboard' });
+        dadosGlobais = data;
+        renderDashboard(data);
+        renderCorretores(data.corretores);
+        preencherConfig(data.config);
+        document.getElementById('last-update').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR');
+      } catch (e) { toast('Erro ao carregar dados', 'error'); }
+    }
+
+    async function carregarClientes() {
+      try {
+        const data = await chamarApi({ acao: 'clientes' });
+        clientesGlobais = data.clientes || [];
+        renderClientes(clientesGlobais);
+      } catch (e) { toast('Erro ao carregar clientes', 'error'); }
+    }
+
+    async function carregarEquipes() {
+      try {
+        const data = await chamarApi({ acao: 'listar_equipes' });
+        const equipes = Array.isArray(data) ? data : [];
+        renderEquipes(equipes);
+      } catch (e) { toast('Erro ao carregar equipes', 'error'); }
+    }
+
+    function renderDashboard(data) {
+      const c = data.corretores || [];
+      document.getElementById('stat-online').textContent = c.filter(x => x.ativo).length;
+      document.getElementById('stat-leads').textContent = c.reduce((a, x) => a + (x.leads_recebidos || 0), 0);
+      document.getElementById('stat-respondidos').textContent = c.reduce((a, x) => a + (x.leads_respondidos || 0), 0);
+      document.getElementById('stat-perdidos').textContent = c.reduce((a, x) => a + (x.leads_perdidos || 0), 0);
+      document.getElementById('tbody-dashboard').innerHTML = c.map(c => `
+    <tr>
+      <td><strong>${c.nome}</strong></td>
+      <td><span class="tag tag-purple">${c.department_nome || '—'}</span></td>
+      <td><span class="badge ${c.ativo ? 'online' : 'offline'}"><span class="badge-dot"></span>${c.ativo ? 'Online' : 'Offline'}</span></td>
+      <td style="color:var(--muted)">${c.tempo_online || '—'}</td>
+      <td><strong>${c.leads_recebidos}</strong></td>
+      <td style="color:#15803d;font-weight:600">${c.leads_respondidos}</td>
+      <td style="color:#c2410c;font-weight:600">${c.leads_perdidos}</td>
+      <td><button class="btn-sm ${c.ativo ? 'btn-toggle-on' : 'btn-toggle-off'}" onclick="toggleCorretor('${c.agent_id}',${!c.ativo})">${c.ativo ? 'Desativar' : 'Ativar'}</button></td>
+    </tr>`).join('');
+    }
+
+    function renderClientes(lista) {
+      document.getElementById('tbody-clientes').innerHTML = lista.length === 0
+        ? '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px">Nenhum cliente ainda</td></tr>'
+        : lista.map(c => `
+    <tr>
+      <td><strong>${c.nome}</strong></td>
+      <td style="color:var(--muted)">${c.telefone}</td>
+      <td style="color:var(--muted);font-size:12px">${fmtData(c.hora_entrada)}</td>
+      <td><span class="tag tag-orange">${c.departamento_entrada}</span></td>
+      <td style="text-align:center">${c.tentativas}</td>
+      <td>${c.corretor}</td>
+      <td style="color:var(--muted);font-size:12px">${fmtData(c.hora_corretor_pegou)}</td>
+      <td style="text-align:center"><strong>${c.minutos_aguardando}</strong> min</td>
+      <td><span class="badge ${c.status.toLowerCase()}">${c.status}</span></td>
+      <td><a class="link-helena" href="https://qozt.wts.chat/redirect?type=SESSION&id=${c.session_id}" target="_blank">↗ Ver</a></td>
+    </tr>`).join('');
+    }
+
+    function filtrarClientes() {
+      const texto = document.getElementById('filtro-cliente').value.toLowerCase();
+      const status = document.getElementById('filtro-status').value;
+      const filtrados = clientesGlobais.filter(c => {
+        const matchTexto = !texto || c.nome.toLowerCase().includes(texto) || c.telefone.includes(texto);
+        const matchStatus = !status || c.status === status;
+        return matchTexto && matchStatus;
+      });
+      renderClientes(filtrados);
+    }
+
+    function renderCorretores(lista) {
+      document.getElementById('tbody-corretores').innerHTML = (lista || []).map(c => `
+    <tr>
+      <td><strong>${c.nome}</strong></td>
+      <td><span style="letter-spacing:.08em;color:var(--accent);font-weight:600">${c.senha || '—'}</span></td>
+      <td><span class="tag tag-purple">${c.department_nome || '—'}</span></td>
+      <td><span class="badge ${c.ativo ? 'online' : 'offline'}"><span class="badge-dot"></span>${c.ativo ? 'Online' : 'Offline'}</span></td>
+      <td><strong>${c.leads_recebidos}</strong></td>
+      <td>
+        <button class="btn-sm btn-toggle-${c.ativo ? 'on' : 'off'}" onclick="toggleCorretor('${c.agent_id}',${!c.ativo})">${c.ativo ? 'Desativar' : 'Ativar'}</button>
+        <button class="btn-sm btn-edit" onclick="editarCorretor(${JSON.stringify(c).replace(/"/g, '&quot;')})">Editar</button>
+        <button class="btn-sm btn-edit" onclick="abrirModalSenha('${c.agent_id}')">Senha</button>
+      </td>
+    </tr>`).join('');
+    }
+
+    function renderEquipes(lista) {
+      if (!Array.isArray(lista) || lista.length === 0) {
+        document.getElementById('tbody-equipes').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Nenhuma equipe carregada</td></tr>';
+        return;
+      }
+      document.getElementById('tbody-equipes').innerHTML = lista.map(e => `
+    <tr>
+      <td><strong>${e.name || '—'}</strong></td>
+      <td style="color:var(--muted);font-size:11px;font-family:monospace">${e.id}</td>
+      <td style="text-align:center">${e.isDefault ? '<span class="tag tag-orange">Padrão</span>' : '—'}</td>
+      <td style="text-align:center"><strong>${(e.agents || []).length}</strong></td>
+      <td><button class="btn-sm btn-danger" onclick="abrirModalExcluirEquipe('${e.id}')">Excluir</button></td>
+    </tr>`).join('');
+    }
+
+    function preencherConfig(cfg) {
+      if (!cfg) return;
+      document.getElementById('cfg-timeout').value = cfg.timeout_resposta_minutos || '';
+      document.getElementById('cfg-tentativas').value = cfg.max_tentativas || '';
+      document.getElementById('cfg-webhook').value = cfg.webhook_escalonamento || '';
+    }
+
+    async function toggleCorretor(agentId, novoAtivo) {
+      try {
+        await chamarApi({ acao: 'toggle_corretor', agent_id: agentId, ativo: novoAtivo });
+        toast(novoAtivo ? 'Corretor ativado' : 'Corretor desativado');
+        await carregarTudo();
+      } catch (e) { toast('Erro ao alterar', 'error'); }
+    }
+
+    async function salvarCorretor() {
+      const nome = document.getElementById('corretor-nome').value.trim();
+      const senha = document.getElementById('corretor-senha').value.trim().toUpperCase();
+      const agentId = document.getElementById('corretor-agent-id').value.trim();
+      const eq = document.getElementById('corretor-equipe').value.split('|');
+      if (!nome || !senha || !agentId) { toast('Preencha todos os campos', 'error'); return; }
+      try {
+        await chamarApi({ acao: 'salvar_corretor', nome, senha, agent_id: agentId, department_id: eq[0], department_nome: eq[1], department_ordem: parseInt(eq[2]) });
+        toast('Corretor salvo'); limparFormCorretor(); await carregarTudo();
+      } catch (e) { toast('Erro ao salvar', 'error'); }
+    }
+
+    function editarCorretor(c) {
+      document.getElementById('form-corretor-titulo').textContent = 'Editar corretor';
+      document.getElementById('corretor-nome').value = c.nome;
+      document.getElementById('corretor-senha').value = c.senha || '';
+      document.getElementById('corretor-agent-id').value = c.agent_id;
+      const sel = document.getElementById('corretor-equipe');
+      for (let o of sel.options) { if (o.value.startsWith(c.department_id)) { sel.value = o.value; break; } }
+      mudarTab('corretores', document.querySelectorAll('.tab')[2]);
+      window.scrollTo(0, 0);
+    }
+
+    function limparFormCorretor() {
+      document.getElementById('form-corretor-titulo').textContent = 'Novo corretor';
+      ['corretor-nome', 'corretor-senha', 'corretor-agent-id'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    async function criarEquipe() {
+      const nome = document.getElementById('equipe-nome').value.trim();
+      if (!nome) { toast('Digite o nome da equipe', 'error'); return; }
+      try {
+        const res = await chamarApi({ acao: 'criar_equipe', nome });
+        toast('Equipe criada: ' + (res.name || nome));
+        document.getElementById('equipe-nome').value = '';
+        carregarEquipes();
+      } catch (e) { toast('Erro ao criar equipe', 'error'); }
+    }
+
+    function abrirModalExcluirEquipe(id) {
+      document.getElementById('modal-equipe-id').value = id;
+      document.getElementById('modal-excluir-equipe').classList.add('open');
+    }
+
+    async function confirmarExcluirEquipe() {
+      const id = document.getElementById('modal-equipe-id').value;
+      try {
+        await chamarApi({ acao: 'excluir_equipe', department_id: id });
+        toast('Equipe excluída'); fecharModal('modal-excluir-equipe'); carregarEquipes();
+      } catch (e) { toast('Erro ao excluir', 'error'); }
+    }
+
+    async function salvarConfig() {
+      const timeout = parseInt(document.getElementById('cfg-timeout').value);
+      const tent = parseInt(document.getElementById('cfg-tentativas').value);
+      const webhook = document.getElementById('cfg-webhook').value.trim();
+      if (!timeout || !tent) { toast('Preencha os campos obrigatórios', 'error'); return; }
+      try {
+        await chamarApi({ acao: 'salvar_config', timeout_resposta_minutos: timeout, max_tentativas: tent, webhook_escalonamento: webhook });
+        toast('Configurações salvas');
+      } catch (e) { toast('Erro ao salvar config', 'error'); }
+    }
+
+    function abrirModalSenha(agentId) {
+      document.getElementById('modal-agent-id').value = agentId;
+      document.getElementById('modal-nova-senha').value = '';
+      document.getElementById('modal-senha').classList.add('open');
+    }
+
+    function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    async function confirmarSenha() {
+      const agentId = document.getElementById('modal-agent-id').value;
+      const novaSenha = document.getElementById('modal-nova-senha').value.trim().toUpperCase();
+      if (!novaSenha) { toast('Digite a nova senha', 'error'); return; }
+      try {
+        await chamarApi({ acao: 'trocar_senha', agent_id: agentId, nova_senha: novaSenha });
+        toast('Senha alterada'); fecharModal('modal-senha'); await carregarTudo();
+      } catch (e) { toast('Erro ao trocar senha', 'error'); }
+    }
+
+    setInterval(carregarTudo, 30000);
+    carregarTudo();
+  </script>
+</body>
+
+</html>
