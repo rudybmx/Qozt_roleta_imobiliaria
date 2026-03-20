@@ -798,16 +798,7 @@
           <div class="form-group">
             <label>Equipe</label>
             <select id="corretor-equipe">
-              <option value="dac98425-e7bd-46a2-b26e-5a1be33b9f79|Equipe 01|1">Equipe 01</option>
-              <option value="082d342d-6259-4e6b-9f4d-d39010dbf4ee|Equipe 02|2">Equipe 02</option>
-              <option value="c6f59d5f-4576-4ff8-9418-4f3d35f2ba52|Equipe 03|3">Equipe 03</option>
-              <option value="1f645418-7402-4c1d-ac1d-3bfa5bdec693|Equipe 04|4">Equipe 04</option>
-              <option value="41f4ee46-9bf6-4542-919d-8f0c86a18b5e|Equipe 05|5">Equipe 05</option>
-              <option value="be0b5642-0383-48dd-98e5-15766f221e77|Equipe 06|6">Equipe 06</option>
-              <option value="6b0474e0-395f-4083-993e-1802bc7f4eb1|Equipe 07|7">Equipe 07</option>
-              <option value="2c051940-c025-4e95-bfae-43a82862393a|Equipe 08|8">Equipe 08</option>
-              <option value="3970d9b2-76de-4f5e-aa48-81e69c0b7b02|Equipe 09|9">Equipe 09</option>
-              <option value="c5c06519-23fe-4c9a-a273-459028ec7bea|Equipe 10|10">Equipe 10</option>
+              <option value="">Carregando equipes...</option>
             </select>
           </div>
           <div class="form-full" style="display:flex;gap:10px;margin-top:8px;">
@@ -921,6 +912,7 @@
     const API = 'https://webhooks.qozt.com.br/webhook/gerente-vitta-api';
     let dadosGlobais = { corretores: [], config: {} };
     let clientesGlobais = [];
+    let equipesGlobais = [];
 
     async function chamarApi(body) {
       const res = await fetch(API, {
@@ -954,7 +946,10 @@
 
     async function carregarTudo() {
       try {
-        const data = await chamarApi({ acao: 'dashboard' });
+        const [data] = await Promise.all([
+          chamarApi({ acao: 'dashboard' }),
+          equipesGlobais.length === 0 ? carregarEquipes() : Promise.resolve()
+        ]);
         dadosGlobais = data;
         renderDashboard(data);
         renderCorretores(data.corretores);
@@ -974,9 +969,26 @@
     async function carregarEquipes() {
       try {
         const data = await chamarApi({ acao: 'listar_equipes' });
-        const equipes = Array.isArray(data) ? data : [];
-        renderEquipes(equipes);
+        equipesGlobais = Array.isArray(data) ? data : [];
+        renderEquipes(equipesGlobais);
+        popularSelectEquipes(equipesGlobais);
       } catch (e) { toast('Erro ao carregar equipes', 'error'); }
+    }
+
+    function popularSelectEquipes(lista) {
+      const sel = document.getElementById('corretor-equipe');
+      const valorAtual = sel.value;
+      sel.innerHTML = lista
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        .map((e, i) => {
+          const val = e.id + '|' + (e.name || e.id) + '|' + (i + 1);
+          return '<option value="' + val + '">' + (e.name || e.id) + '</option>';
+        }).join('');
+      // Tenta restaurar seleção anterior
+      if (valorAtual) {
+        const match = Array.from(sel.options).find(o => o.value.startsWith(valorAtual.split('|')[0]));
+        if (match) sel.value = match.value;
+      }
     }
 
     function renderDashboard(data) {
