@@ -891,6 +891,7 @@
     <!-- CLIENTES -->
     <div class="tab-pane" id="tab-clientes">
       <div class="filter-bar">
+        <input type="date" id="filtro-data-cliente" onchange="carregarClientes()">
         <input type="text" id="filtro-cliente" placeholder="Buscar por nome ou telefone..." oninput="filtrarClientes()">
         <select id="filtro-status" onchange="filtrarClientes()">
           <option value="">Todos os status</option>
@@ -1164,7 +1165,12 @@
 
     async function carregarClientes() {
       try {
-        const data = await chamarApi({ acao: 'clientes' });
+        const dataEl = document.getElementById('filtro-data-cliente');
+        // Inicializa com hoje se vazio
+        if (!dataEl.value) {
+          dataEl.value = new Date().toISOString().split('T')[0];
+        }
+        const data = await chamarApi({ acao: 'clientes', data: dataEl.value });
         clientesGlobais = data.clientes || [];
         renderClientes(clientesGlobais);
       } catch (e) { toast('Erro ao carregar clientes', 'error'); }
