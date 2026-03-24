@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/corretor-vitta", "destination": "/corretor_vitta.html" },
+    { "source": "/gerente-vitta", "destination": "/gerente_vitta.html" },
+    { "source": "/corretor-century", "destination": "/corretor_century.html" },
+    { "source": "/gerente-century", "destination": "/gerente_century.html" }
+  ]
+}
